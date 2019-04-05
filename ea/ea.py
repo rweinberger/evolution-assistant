@@ -1,67 +1,19 @@
 # coding: utf-8
 from git import Repo
-from enum import Enum
 import glob
 import os
 import csv
+
 import settings
-
-class Sco(Enum):
-    ADD_COLUMN      = 1
-    DROP_COLUMN     = 2
-    RENAME_COLUMN   = 3
-    ADD_TABLE       = 4
-    DROP_TABLE      = 5
-    RENAME_TABLE    = 6
-
-class SchemaChange():
-    def __init__(self, operator, *operands):
-        self.operator = operator
-        self.operands = operands
-
-    def __str__(self):
-        s = "operator: " + self.operator.name
-        if len(self.operands) != 0:
-            s += ", args: "
-            for o in self.operands:
-                s += o + " "
-        return s
-
-    def get_operator(self):
-        return self.operator
-
-    def get_perands(self):
-        return self.operands
-
-class SchemaChangeSequence():
-    def __init__(self, changes):
-        self.changes = changes
-
-    def __iter__(self):
-        self.i = 0
-        return self
-
-    def __next__(self):
-        if self.i < len(self.changes):
-            change = self.changes[self.i]
-            self.i += 1
-            return change
-        else:
-            raise StopIteration
-
-    def add(self, change):
-        self.changes.append(change)
-
-    def add_all(self, changes):
-        self.changes.extend(changes)
+from sco import Sco, SchemaChange, SchemaChangeSequence
 
 class EvolutionAssistant():
-    def __init__(self, module, repo_dir, src_code_dir, schema_dir, map_table_csv):
+    def __init__(self, module, repo_dir, src_code_dir, schema_dir, map_table):
         self.module = module
         self.repo_dir = repo_dir
         self.src_code_dir = src_code_dir
         self.schema_dir = schema_dir
-        self.init_map_table(map_table_csv)
+        self.init_map_table(map_table)
 
     def init_map_table(self, f):
         schema_var_to_row = {}
@@ -138,7 +90,7 @@ if __name__ == "__main__":
 
     sco = Sco.ADD_COLUMN # the SCO to analyze
     var = 'logistic_contract' # variable on which the SCO operates
-    maintenance = 'UNKNOWN_SCO'
+    maintenance = 'UNKNOWN'
 
     if sco == Sco.ADD_COLUMN:
         print("schema maintenance", ea.get_schema_maintenance(var))

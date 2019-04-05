@@ -1,4 +1,4 @@
 .DS_Store
 ea/settings.py
 map_table.csv
-
+*.pyc
