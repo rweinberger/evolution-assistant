@@ -9,26 +9,21 @@ class Sco(Enum):
     RENAME_TABLE    = 6
 
 class SchemaChange():
-    def __init__(self, operator, *operands):
+    def __init__(self, operator, operand):
         self.operator = operator
-        self.operands = operands
+        self.operand = operand
 
     def __str__(self):
-        s = "operator: " + self.operator.name
-        if len(self.operands) != 0:
-            s += ", args: "
-            for o in self.operands:
-                s += o + " "
-        return s
+        return self.operator.name + ", " + self.operand
 
     def get_operator(self):
         return self.operator
 
-    def get_perands(self):
-        return self.operands
+    def get_operand(self):
+        return self.operand
 
 class SchemaChangeSequence():
-    def __init__(self, changes):
+    def __init__(self, changes = []):
         self.changes = changes
 
     def __iter__(self):
@@ -46,5 +41,5 @@ class SchemaChangeSequence():
     def add(self, change):
         self.changes.append(change)
 
-    def add_all(self, changes):
+    def add_all(self, *changes):
         self.changes.extend(changes)
