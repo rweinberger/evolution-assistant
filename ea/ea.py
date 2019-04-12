@@ -1,5 +1,6 @@
 # coding: utf-8
 from git import Repo
+from functools import reduce
 import glob
 import os
 import csv
@@ -16,6 +17,8 @@ class EvolutionAssistant():
         self.map_table_file = map_table
         self.verbose = verbose
         self.init_map_table(map_table)
+        # self.map_table
+        # self.table_to_vars
 
         git = Repo(repo_dir).git()
         git.checkout("-f", commit_hash)
@@ -23,32 +26,62 @@ class EvolutionAssistant():
         ADD = self.simple_add
         SCHEMA = self.schema_maintenance
         MAP = self.map_maintenance
+        MAP_T = self.table_wrapper(MAP)
         APPLICATION = self.application_maintenance
+        APPLICATION_T = self.table_wrapper(APPLICATION)
         QUERY = self.query_maintenance
+        QUERY_T = self.table_wrapper(QUERY)
 
         # maps SCOs to the functions that must be used to calculate their impact
         self.impact_map = {
             Sco.ADD_COLUMN :    [ ADD ],
             Sco.DROP_COLUMN:    [ SCHEMA, MAP, APPLICATION, QUERY ],
-            Sco.RENAME_COLUMN:  [ SCHEMA, MAP, APPLICATION, QUERY ],
+            Sco.RENAME_COLUMN:  [ SCHEMA, MAP, QUERY ],
             Sco.ADD_TABLE:      [ ADD ],
-            Sco.DROP_TABLE:     [ SCHEMA, MAP, APPLICATION, QUERY ],
-            Sco.RENAME_TABLE:   [ SCHEMA, MAP, APPLICATION, QUERY ]
+            Sco.DROP_TABLE:     [ SCHEMA, MAP_T, APPLICATION_T, QUERY_T ],
+            Sco.RENAME_TABLE:   [ SCHEMA, MAP_T, QUERY ]
         }
+
+    def table_wrapper(self, f):
+        def wrapped(table_name):
+            schema_vars = self.table_to_vars[table_name]
+            maintenance = 0
+            aggregate_lines = {}
+            for v in schema_vars:
+                res = f(v)
+                maintenance += res[0]
+                lines = res[1]
+                for fn in lines:
+                    lines_list = lines[fn]
+                    if fn in aggregate_lines:
+                        aggregate_lines[fn].extend(lines_list)
+                    else:
+                        aggregate_lines[fn] = lines_list[:]
+            return (maintenance, aggregate_lines)
+        wrapped.__name__ = f.__name__ + "_t"
+        return wrapped
 
     def init_map_table(self, f):
         schema_var_to_row = {}
+        schema_table_to_vars = {}
         with open(f, newline='') as csvfile:
             reader = csv.reader(csvfile, delimiter=',')
-            i = 0
+            i = 1
             for row in reader:
                 schema_var = row[-1].lower()
+                table_name = row[-2].lower()
                 row_data = [i] + row[:len(row)]
                 if schema_var in schema_var_to_row:
                     schema_var_to_row[schema_var].append(row_data)
                 else:
                     schema_var_to_row[schema_var] = [row_data]
+
+                if table_name in schema_table_to_vars:
+                    schema_table_to_vars[table_name].append(schema_var)
+                else:
+                    schema_table_to_vars[table_name] = [schema_var]
                 i += 1
+        self.table_to_vars = schema_table_to_vars
         self.map_table = schema_var_to_row
     
     def get_classpath(self, classname):
@@ -149,7 +182,8 @@ class EvolutionAssistant():
                     file_dict = partial_result[1]
                     for fn in file_dict:
                         lineNums = [e[0] for e in file_dict[fn]]
-                        print("\t\t" + fn + " lines " + str(lineNums))
+                        if (len(lineNums) > 0):
+                            print("\t\t" + fn + " lines " + str(lineNums))
             print("Partial impact " + str(sc_impact))
             print('----------------')
             impact += sc_impact
@@ -166,10 +200,12 @@ if __name__ == "__main__":
                             2 )
 
     sc1 = SchemaChange(Sco.ADD_COLUMN, "new_column")
-    sc2 = SchemaChange(Sco.RENAME_COLUMN, "carrier_cnpj")
+    sc2 = SchemaChange(Sco.DROP_TABLE, "national_freight")
     sc3 = SchemaChange(Sco.DROP_COLUMN, "contract_type")
+    sc4 = SchemaChange(Sco.RENAME_TABLE, "national_freight")
+    sc5 = SchemaChange(Sco.RENAME_COLUMN, "contract_type")
     seq = SchemaChangeSequence()
-    seq.add_all(sc1, sc2, sc3)
+    seq.add_all(sc1, sc2, sc3, sc4, sc5)
     print("total impact " + str(ea.get_impact(seq)))
 
 '''
