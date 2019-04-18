@@ -3,10 +3,10 @@
 <h3> Enter Schema Change </h3>
 <form id='sco-form'>
     <select name="table" form="table-form">
-            <option value="" selected disabled hidden>Select Table</option>
-            {% for t in tables %}
-            <option value="{{ t }}"> {{ t }}</option>
-            {% endfor %}
+        <option value="" selected disabled hidden>Select Table</option>
+        {% for t in tables %}
+        <option value="{{ t }}"> {{ t }}</option>
+        {% endfor %}
     </select>
 
     <select name="sc" form="sco-form">
