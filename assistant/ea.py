@@ -5,8 +5,7 @@ import glob
 import os
 import csv
 
-import settings
-from sco import Sco, SchemaChange, SchemaChangeSequence
+from assistant.sco import Sco, SchemaChange, SchemaChangeSequence
 
 class EvolutionAssistant():
     def __init__(self, module, repo_dir, code_dir, schema_dir, query_files, commit_hash, map_table, verbose):
@@ -16,12 +15,14 @@ class EvolutionAssistant():
         self.query_files = query_files
         self.map_table_file = map_table
         self.verbose = verbose
+
+        self.repo = Repo(repo_dir)
+        self.version_date = self.repo.commit(commit_hash).committed_date
+        self.repo.git.checkout("-f", commit_hash)
+
         self.init_map_table(map_table)
         # self.map_table
         # self.table_to_vars
-
-        git = Repo(repo_dir).git()
-        git.checkout("-f", commit_hash)
 
         ADD = self.simple_add
         SCHEMA = self.schema_maintenance
@@ -61,6 +62,11 @@ class EvolutionAssistant():
         wrapped.__name__ = f.__name__ + "_t"
         return wrapped
 
+    def validate_row(self, start, end):
+        start_date = self.repo.commit(start.strip()).committed_date
+        end_date = self.repo.commit(end.strip()).committed_date
+        return start_date <= self.version_date and self.version_date <= end_date
+
     def init_map_table(self, f):
         schema_var_to_row = {}
         schema_table_to_vars = {}
@@ -68,18 +74,24 @@ class EvolutionAssistant():
             reader = csv.reader(csvfile, delimiter=',')
             i = 1
             for row in reader:
-                schema_var = row[-1].lower()
-                table_name = row[-2].lower()
-                row_data = [i] + row[:len(row)]
-                if schema_var in schema_var_to_row:
-                    schema_var_to_row[schema_var].append(row_data)
-                else:
-                    schema_var_to_row[schema_var] = [row_data]
+                if i == 1:
+                    i += 1
+                    continue
+                start_hash = row[0]
+                end_hash = row[1]
+                if self.validate_row(start_hash, end_hash):
+                    schema_var = row[-1].lower()
+                    table_name = row[-2].lower()
+                    row_data = [i] + row[:len(row)]
+                    if schema_var in schema_var_to_row:
+                        schema_var_to_row[schema_var].append(row_data)
+                    else:
+                        schema_var_to_row[schema_var] = [row_data]
 
-                if table_name in schema_table_to_vars:
-                    schema_table_to_vars[table_name].append(schema_var)
-                else:
-                    schema_table_to_vars[table_name] = [schema_var]
+                    if table_name in schema_table_to_vars:
+                        schema_table_to_vars[table_name].append(schema_var)
+                    else:
+                        schema_table_to_vars[table_name] = [schema_var]
                 i += 1
         self.table_to_vars = schema_table_to_vars
         self.map_table = schema_var_to_row
@@ -189,24 +201,33 @@ class EvolutionAssistant():
             impact += sc_impact
         return impact
 
-if __name__ == "__main__":
-    ea = EvolutionAssistant(settings.MODULE,
-                            settings.REPO_DIR,
-                            settings.CODE_DIR,
-                            settings.SCHEMA_DIR,
-                            settings.QUERY_FILES,
-                            settings.COMMIT_HASH,
-                            settings.MAP_TABLE,
-                            2 )
+# MODULE = 'freight'
+# REPO_DIR = '../../b2w-checkout-legado'
+# CODE_DIR = REPO_DIR + '/B2wCheckoutWeb/src/main/java/com/b2winc/checkout/'
+# SCHEMA_DIR = REPO_DIR + '/Scripts/SCRIPTS_BD/'
+# QUERY_FILES = { 'FreightRepository.java', 'CarrierRepository.java' }
+# COMMIT_HASH = 'd2569a1e418f35ef117cad4d40b1ac2e2ef4f084'
+# MAP_TABLE = '../map_table.csv'
 
-    sc1 = SchemaChange(Sco.ADD_COLUMN, "new_column")
-    sc2 = SchemaChange(Sco.DROP_TABLE, "national_freight")
-    sc3 = SchemaChange(Sco.DROP_COLUMN, "contract_type")
-    sc4 = SchemaChange(Sco.RENAME_TABLE, "national_freight")
-    sc5 = SchemaChange(Sco.RENAME_COLUMN, "contract_type")
-    seq = SchemaChangeSequence()
-    seq.add_all(sc1, sc2, sc3, sc4, sc5)
-    print("total impact " + str(ea.get_impact(seq)))
+if __name__ == "__main__":
+    pass
+    # ea = EvolutionAssistant(MODULE,
+    #                         REPO_DIR,
+    #                         CODE_DIR,
+    #                         SCHEMA_DIR,
+    #                         QUERY_FILES,
+    #                         COMMIT_HASH,
+    #                         MAP_TABLE,
+    #                         2 )
+
+    # sc1 = SchemaChange(Sco.ADD_COLUMN, "new_column")
+    # sc2 = SchemaChange(Sco.DROP_TABLE, "national_freight")
+    # sc3 = SchemaChange(Sco.DROP_COLUMN, "contract_type")
+    # sc4 = SchemaChange(Sco.RENAME_TABLE, "national_freight")
+    # sc5 = SchemaChange(Sco.RENAME_COLUMN, "contract_type")
+    # seq = SchemaChangeSequence()
+    # seq.add_all(sc1, sc2, sc3, sc4, sc5)
+    # print("total impact " + str(ea.get_impact(seq)))
 
 '''
 git stuff

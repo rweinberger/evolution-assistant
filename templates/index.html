@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h3> Enter Schema Change </h3>
+<form id='sco-form'>
+    <select name="table" form="table-form">
+            <option value="" selected disabled hidden>Select Table</option>
+            {% for t in tables %}
+            <option value="{{ t }}"> {{ t }}</option>
+            {% endfor %}
+    </select>
+
+    <select name="sc" form="sco-form">
+        <option value="" selected disabled hidden>Select SCO</option>
+        {% for sco in scos %}
+        <option value="{{ sco }}"> {{ sco }}</option>
+        {% endfor %}
+    </select>
+    <input type="text" name="firstname">
+    <input type="text" name="lastname">
+</form>
+{% endblock %}
