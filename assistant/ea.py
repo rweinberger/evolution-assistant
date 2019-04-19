@@ -45,6 +45,8 @@ class EvolutionAssistant():
 
     def table_wrapper(self, f):
         def wrapped(table_name):
+            if table_name not in self.table_to_vars:
+                return (0, {})
             schema_vars = self.table_to_vars[table_name]
             maintenance = 0
             aggregate_lines = {}
@@ -74,14 +76,15 @@ class EvolutionAssistant():
             reader = csv.reader(csvfile, delimiter=',')
             i = 1
             for row in reader:
-                if i == 1:
+                if i < 3:
                     i += 1
                     continue
                 start_hash = row[0]
-                end_hash = row[1]
+                end_hash = row[2]
+                print(start_hash, end_hash)
                 if self.validate_row(start_hash, end_hash):
-                    schema_var = row[-1].lower()
-                    table_name = row[-2].lower()
+                    schema_var = row[-4].lower()
+                    table_name = row[-5].lower()
                     row_data = [i] + row[:len(row)]
                     if schema_var in schema_var_to_row:
                         schema_var_to_row[schema_var].append(row_data)
@@ -97,6 +100,7 @@ class EvolutionAssistant():
         self.map_table = schema_var_to_row
     
     def get_classpath(self, classname):
+        print(classname)
         base_dir = self.code_dir + self.module
         classes = glob.glob(base_dir + '/**/*.java', recursive = True)
         for c in classes:
@@ -140,7 +144,7 @@ class EvolutionAssistant():
     def map_maintenance(self, var):
         if var not in self.map_table:
             return (0, { })
-            
+
         map_entry = self.map_table[var]
         lines = []
         for entry in map_entry:
@@ -155,7 +159,7 @@ class EvolutionAssistant():
 
         maps = self.map_table[var]
 
-        affected_classes_and_variables = [[m[3], m[4]] for m in maps]
+        affected_classes_and_variables = [[m[5], m[6]] for m in maps]
         for i in range(len(affected_classes_and_variables)):
             classname = affected_classes_and_variables[i][0]
             affected_classes_and_variables[i][0] = self.get_classpath(classname)
@@ -184,14 +188,17 @@ class EvolutionAssistant():
     def get_impact(self, sequence):
         print('----------------')
         impact = 0
+        res = {}
         for sc in sequence:
             print(str(sc))
             sc_impact = 0
             operator = sc.get_operator()
             var = sc.get_operand()
             maintenance_funcs = self.impact_map[operator]
+            partial_results = {}
             for f in maintenance_funcs:
                 partial_result = f(var)
+                partial_results[f.__name__] = partial_result
                 partial_impact = partial_result[0]
                 sc_impact += partial_impact
                 if self.verbose > 0:
@@ -205,7 +212,8 @@ class EvolutionAssistant():
             print("Partial impact " + str(sc_impact))
             print('----------------')
             impact += sc_impact
-        return impact
+            res[(operator.name, var)] = partial_results
+        return (impact, res)
 
 if __name__ == "__main__":
     pass

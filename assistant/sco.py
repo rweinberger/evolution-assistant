@@ -26,8 +26,11 @@ class SchemaChange():
         return self.operand.lower()
 
 class SchemaChangeSequence():
-    def __init__(self, changes = []):
-        self.changes = changes
+    def __init__(self):
+        self.changes = []
+
+    def __len__(self):
+        return len(self.changes)
 
     def __iter__(self):
         self.i = 0

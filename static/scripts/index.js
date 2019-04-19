@@ -16,7 +16,7 @@ $(window).on('load', function() {
         formNum++;
 
         // clone old form
-        const newForm = $("#og-form").clone(true, true);
+        const newForm = $("#og-form").clone(false, false);
 
         // update attributes on clones
         var classname = updateAttributes(newForm);
@@ -89,6 +89,7 @@ function addColumnSelect(target, table, text, targetNum) {
 function showForm(classname, table, sco) {
     const targetNum = classname.replace("target", "");
     const targetClass = $('.' + classname + '-ext');
+    console.log('.' + classname + '-ext');
     targetClass.empty();
     switch (sco) {
         case "ADD_COLUMN":
@@ -116,6 +117,7 @@ function showForm(classname, table, sco) {
 }
 
 function detectFormSelection(classname) {
+    console.log(classname);
     return function() {
         allSelected = true;
         let sco = null;
@@ -125,7 +127,6 @@ function detectFormSelection(classname) {
                 allSelected = false;
                 return;
             }
-
             if ($(this).hasClass("sco-select")) sco = $(this).val();
             if ($(this).hasClass("table-select")) table = $(this).val();
         })

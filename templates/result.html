@@ -1,6 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
 
+<h1>Results: total impact {{ total_impact }}</h1>
 
+{% for sco, res in results.items() %}
+    <hr>
+    <h4>{{ sco[0] }} : {{ sco[1] }}</h4>
+    {% for maintenance_name, detail in res.items() %}
+        <div class='maintenance-result'>
+            <span class='toggle-details'>+</span> <span>{{ detail[0] }} {{ maintenance_name }}</span>
+            <div class='maintenance-details'>
+            {% for file_name, lines in detail[1].items() %}
+                <span>
+                <b>{{ file_name }}</b> [
+                    {% for line_num, line in lines %}
+                        {{ line_num }},
+                    {% endfor %}
+                ] <br>
+                </span>
+            {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<script src="{{ url_for('static', filename='scripts/result.js') }}"></script>
 
 {% endblock %}

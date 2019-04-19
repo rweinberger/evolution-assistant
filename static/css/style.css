@@ -19,10 +19,10 @@ html, body {
 .single-sco-form {
     padding: 20px;
     /* border: solid 5px #acd8d7; */
-    border-radius: 10px;
+    /* border-radius: 10px; */
     margin-bottom: 20px;
     width: fit-content;
-    background-color: #dfefed;
+    background-color: #e7f3f1;
 }
 
 .del-btn:hover { cursor: pointer }
@@ -31,3 +31,14 @@ html, body {
 }
 
 .sco-form-hidden { display: none }
+
+.maintenance-result {
+    background-color: #e7f3f1;
+    padding: 20px;
+    margin-bottom: 10px;
+}
+
+.maintenance-details { 
+    display: none;
+    margin-left: 50px;
+}
