@@ -49,19 +49,65 @@ function updateAttributes(form) {
             const newName = oldName.slice(0, -1) + String(formNum);
             $(this).attr("name", newName);
         }
+
+        if (newClass.includes("-ext")) $(this).empty();
     })
     return 'target' + String(formNum);
 }
 
-function showForm(classname, sco) {
+function addTextBox(target, text) {
+    const textBox = $("<input type='text' placeholder='" + text + "' required>");
+    target.append(textBox);
+}
+
+function addColumnSelect(target, table, text, targetNum) {
+    const commit = $('#commit').text();
+    const data = {
+        table: table,
+        commit: commit
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "/get_table_vars", 
+        data: JSON.stringify(data, null, '\t'), 
+        contentType: 'application/json;charset=UTF-8',
+        success: function(data, status) {
+            const select = $("<select class='col-select' name='col" + targetNum + "'>");
+            const columns = data.split(" ");
+            select.append('<option value="" selected disabled hidden>' + text + '</option>')
+            for (var i = 0; i < columns.length; i++) {
+                col = columns[i];
+                select.append($("<option>").attr('value', col).text(col));
+            }
+            target.append(select);
+        }
+    });
+}
+
+function showForm(classname, table, sco) {
+    const targetNum = classname.replace("target", "");
     const targetClass = $('.' + classname + '-ext');
+    targetClass.empty();
     switch (sco) {
         case "ADD_COLUMN":
+            addTextBox(targetClass, "New column name");
+            break;
         case "DROP_COLUMN":
+            addColumnSelect(targetClass, table, "Column name", targetNum);
+            break;
         case "RENAME_COLUMN":
+            addColumnSelect(targetClass, table, "Old column name", targetNum);
+            addTextBox(targetClass, "New column name");
+            break;
         case "ADD_TABLE":
+            addTextBox(targetClass, "Table name");
+            break;
         case "DROP_TABLE":
+            break;
         case "RENAME_TABLE":
+            addTextBox(targetClass, "New table name");
+            break;
     }
     if (targetClass.css('display') == 'none') {
         targetClass.css("display", "block");
@@ -72,6 +118,7 @@ function detectFormSelection(classname) {
     return function() {
         allSelected = true;
         let sco = null;
+        let table = null;
         $('.' + classname).each(function() {
             if ($(this).val() === '' || $(this).val() === null) {
                 allSelected = false;
@@ -79,8 +126,9 @@ function detectFormSelection(classname) {
             }
 
             if ($(this).hasClass("sco-select")) sco = $(this).val();
+            if ($(this).hasClass("table-select")) table = $(this).val();
         })
-        if (allSelected) showForm(classname, sco);
+        if (allSelected) showForm(classname, table, sco);
     }
 }
 

@@ -33,11 +33,13 @@ def submit_sc():
             print(key,":",value)
     return 'hi'
 
-@app.route('/get_table_vars', methods=['GET'])
+@app.route('/get_table_vars', methods=['GET', 'POST'])
 def get_table_vars():
-    commit = request.args.get('commit')
-    table = request.args.get('table')
-    return get_vars(commit, table)
+    commit = request.json['commit']
+    table = request.json['table']
+    vars = get_vars(commit, table)
+    formatString = '{} ' * len(vars)
+    return formatString[:-1].format(*vars) 
 
 # ea = EvolutionAssistant(settings.MODULE,  
 #                         settings.REPO_DIR,
