@@ -9,14 +9,14 @@ Commit hash: <span id='commit'><b>{{ commit }}</b></span> [<a href='/'>change</a
         <div class='single-sco-form' id='og-form'>
             <select class="target1 table-select" name="table#1" form="form-data">
                 <option value="" selected disabled hidden>Select Table</option>
-                {% for t in tables %}
+                {% for t in table_names %}
                 <option value="{{ t }}"> {{ t }}</option>
                 {% endfor %}
             </select>
             
             <select class="target1 sco-select" name="sc#1" form="form-data">
                 <option value="" selected disabled hidden>Select SCO</option>
-                {% for sco in scos %}
+                {% for sco in sco_names %}
                 <option value="{{ sco }}"> {{ sco }}</option>
                 {% endfor %}
             </select>

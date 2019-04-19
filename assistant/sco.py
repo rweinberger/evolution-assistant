@@ -14,13 +14,16 @@ class SchemaChange():
         self.operand = operand
 
     def __str__(self):
-        return self.operator.name + ", " + self.operand
+        if type(self.operator) is str:
+            return self.operator + ", " + self.operand
+        else:
+            return self.operator.name + ", " + self.operand
 
     def get_operator(self):
-        return self.operator
+        return Sco(self.operator) if type(self.operator) is str else self.operator
 
     def get_operand(self):
-        return self.operand
+        return self.operand.lower()
 
 class SchemaChangeSequence():
     def __init__(self, changes = []):

@@ -138,6 +138,9 @@ class EvolutionAssistant():
         return (impact, affected_schemas)
 
     def map_maintenance(self, var):
+        if var not in self.map_table:
+            return (0, { })
+            
         map_entry = self.map_table[var]
         lines = []
         for entry in map_entry:
@@ -147,6 +150,9 @@ class EvolutionAssistant():
         return (len(map_entry), { self.map_table_file : lines })
 
     def application_maintenance(self, var):
+        if var not in self.map_table:
+            return (0, {})
+
         maps = self.map_table[var]
 
         affected_classes_and_variables = [[m[3], m[4]] for m in maps]
@@ -200,14 +206,6 @@ class EvolutionAssistant():
             print('----------------')
             impact += sc_impact
         return impact
-
-# MODULE = 'freight'
-# REPO_DIR = '../../b2w-checkout-legado'
-# CODE_DIR = REPO_DIR + '/B2wCheckoutWeb/src/main/java/com/b2winc/checkout/'
-# SCHEMA_DIR = REPO_DIR + '/Scripts/SCRIPTS_BD/'
-# QUERY_FILES = { 'FreightRepository.java', 'CarrierRepository.java' }
-# COMMIT_HASH = 'd2569a1e418f35ef117cad4d40b1ac2e2ef4f084'
-# MAP_TABLE = '../map_table.csv'
 
 if __name__ == "__main__":
     pass
