@@ -1,21 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-<h3> Enter Schema Change </h3>
-<form id='sco-form'>
-    <select name="table" form="table-form">
-        <option value="" selected disabled hidden>Select Table</option>
-        {% for t in tables %}
-        <option value="{{ t }}"> {{ t }}</option>
-        {% endfor %}
-    </select>
 
-    <select name="sc" form="sco-form">
-        <option value="" selected disabled hidden>Select SCO</option>
-        {% for sco in scos %}
-        <option value="{{ sco }}"> {{ sco }}</option>
-        {% endfor %}
-    </select>
-    <input type="text" name="firstname">
-    <input type="text" name="lastname">
+{% if commit %}
+<h3> Enter Schema Changes </h3>
+Commit hash: {{ commit }}<br><br>
+<form id='form-data' action='/submit_sc' method='POST'>
+    <div id='sco-forms'>
+        <div class='single-sco-form' id='og-form'>
+            <select name="table1" form="form-data">
+                <option value="" selected disabled hidden>Select Table</option>
+                {% for t in tables %}
+                <option value="{{ t }}"> {{ t }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="sc1" form="form-data">
+                <option value="" selected disabled hidden>Select SCO</option>
+                {% for sco in scos %}
+                <option value="{{ sco }}"> {{ sco }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button id='add-sco'>+ Add another</button>
+    <input type='submit'>
 </form>
+
+{% else %}
+<form action='/enter_commit' method='POST'>
+    Enter commit hash:  <input type='text' name='commit-hash' placeholder="e.g. d2569a1e418f35ef117cad4d40b1ac2e2ef4f084" size=60 required>
+    <input type='submit' id='submit-commit-hash'>
+</form>
+
+{% endif %}
+
 {% endblock %}
