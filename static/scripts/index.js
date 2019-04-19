@@ -39,14 +39,13 @@ function updateAttributes(form) {
     form.removeAttr("id");
     form.children().each(function() {
         const oldClass = this.className;
-        const oldClassTarget = 'target1';
         const newClassTarget = 'target' + String(formNum);
-        const newClass = oldClass.replace(oldClassTarget, newClassTarget);
+        const newClass = oldClass.replace('target1', newClassTarget);
         $(this).removeClass(oldClass).addClass(newClass);
 
         const oldName = this.name;
         if (oldName != null) {
-            const newName = oldName.slice(0, -1) + String(formNum);
+            const newName = oldName.replace('1', String(formNum));
             $(this).attr("name", newName);
         }
 
@@ -55,8 +54,9 @@ function updateAttributes(form) {
     return 'target' + String(formNum);
 }
 
-function addTextBox(target, text) {
-    const textBox = $("<input type='text' placeholder='" + text + "' required>");
+function addTextBox(target, text, targetNum) {
+    const name = 'text#' + targetNum;
+    const textBox = $("<input type='text' placeholder='" + text + "' name='" + name + "' required>");
     target.append(textBox);
 }
 
@@ -73,7 +73,8 @@ function addColumnSelect(target, table, text, targetNum) {
         data: JSON.stringify(data, null, '\t'), 
         contentType: 'application/json;charset=UTF-8',
         success: function(data, status) {
-            const select = $("<select class='col-select' name='col" + targetNum + "'>");
+            const name = 'colName#' + targetNum;
+            const select = $("<select class='col-select' name='" + name + "'>");
             const columns = data.split(" ");
             select.append('<option value="" selected disabled hidden>' + text + '</option>')
             for (var i = 0; i < columns.length; i++) {
@@ -91,22 +92,22 @@ function showForm(classname, table, sco) {
     targetClass.empty();
     switch (sco) {
         case "ADD_COLUMN":
-            addTextBox(targetClass, "New column name");
+            addTextBox(targetClass, "New column name", targetNum);
             break;
         case "DROP_COLUMN":
             addColumnSelect(targetClass, table, "Column name", targetNum);
             break;
         case "RENAME_COLUMN":
             addColumnSelect(targetClass, table, "Old column name", targetNum);
-            addTextBox(targetClass, "New column name");
+            addTextBox(targetClass, "New column name", targetNum);
             break;
         case "ADD_TABLE":
-            addTextBox(targetClass, "Table name");
+            addTextBox(targetClass, "Table name", targetNum);
             break;
         case "DROP_TABLE":
             break;
         case "RENAME_TABLE":
-            addTextBox(targetClass, "New table name");
+            addTextBox(targetClass, "New table name", targetNum);
             break;
     }
     if (targetClass.css('display') == 'none') {

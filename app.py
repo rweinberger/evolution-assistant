@@ -13,12 +13,12 @@ def get_vars(commit, table):
 
 @app.route('/')
 def index():
-    scos = [s.value for s in Sco]
+    sco_names = [s.value for s in Sco]
     commit = request.args.get('commit')
-    tables = []
+    table_names = []
     if commit:
         tables = get_tables(commit)
-    return render_template("index.html", commit = commit, scos = scos, tables = tables)
+    return render_template("index.html", commit = commit, sco_names = sco_names, table_names = table_names)
 
 @app.route('/enter_commit', methods=['POST'])
 def enter_commit():
@@ -28,9 +28,17 @@ def enter_commit():
 @app.route('/submit_sc', methods=['POST'])
 def submit_sc():
     f = request.form
-    for key in f.keys():
+    grouped = {}
+    for key in f:
         for value in f.getlist(key):
-            print(key,":",value)
+            splitKey = key.split('#')
+            group = splitKey[0]
+            index = splitKey[1]
+            if index in grouped:
+                grouped[index][group] = value
+            else:
+                grouped[index] = { group: value } 
+    scos = grouped.values()
     return 'hi'
 
 @app.route('/get_table_vars', methods=['GET', 'POST'])
