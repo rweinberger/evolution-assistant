@@ -8,6 +8,9 @@ app = Flask(__name__)
 def get_tables(commit):
     return settings.tables[commit].keys()
 
+def get_vars(commit, table):
+    return settings.tables[commit][table]
+
 @app.route('/')
 def index():
     scos = [s.value for s in Sco]
@@ -29,6 +32,12 @@ def submit_sc():
         for value in f.getlist(key):
             print(key,":",value)
     return 'hi'
+
+@app.route('/get_table_vars', methods=['GET'])
+def get_table_vars():
+    commit = request.args.get('commit')
+    table = request.args.get('table')
+    return get_vars(commit, table)
 
 # ea = EvolutionAssistant(settings.MODULE,  
 #                         settings.REPO_DIR,

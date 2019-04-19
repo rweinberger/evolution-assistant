@@ -4,26 +4,30 @@ html, body {
     margin: 0px;
 }
 
+#header a { color: white }
 #header {
-    background-color: #acd8d7;
+    background-color: #7bafae;
+    border-bottom: solid 15px #c9eae6;
     text-align: center;
     padding: 20px;
 }
 
 #content {
-    padding: 20px;
+    padding: 40px;
 }
 
 .single-sco-form {
     padding: 20px;
-    border: solid 2px #acd8d7;
+    /* border: solid 5px #acd8d7; */
     border-radius: 10px;
     margin-bottom: 20px;
     width: fit-content;
-    background-color: #ebf3f2;
+    background-color: #dfefed;
 }
 
 .del-btn:hover { cursor: pointer }
 .del-btn {
     border-radius: 10px;
 }
+
+.sco-form-hidden { display: none }

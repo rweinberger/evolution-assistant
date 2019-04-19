@@ -2,24 +2,26 @@
 {% block content %}
 
 {% if commit %}
-<h3> Enter Schema Changes </h3>
-Commit hash: {{ commit }}<br><br>
+Commit hash: <b>{{ commit }}</b> [<a href='/'>change</a>]<br><br>
+<h3> Enter Schema Changes </h3><br>
 <form id='form-data' action='/submit_sc' method='POST'>
     <div id='sco-forms'>
         <div class='single-sco-form' id='og-form'>
-            <select name="table1" form="form-data">
+            <select class="target1" name="table1" form="form-data">
                 <option value="" selected disabled hidden>Select Table</option>
                 {% for t in tables %}
                 <option value="{{ t }}"> {{ t }}</option>
                 {% endfor %}
             </select>
             
-            <select name="sc1" form="form-data">
+            <select class="target1 sco-select" name="sc1" form="form-data">
                 <option value="" selected disabled hidden>Select SCO</option>
                 {% for sco in scos %}
                 <option value="{{ sco }}"> {{ sco }}</option>
                 {% endfor %}
             </select>
+
+            <div class='target1-ext sco-form-hidden'></div>
         </div>
     </div>
     <button id='add-sco'>+ Add another</button>
