@@ -1,28 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Results: total impact {{ total_impact }}</h1>
+<h1>Results</h1>
 
-{% for sco, res in results.items() %}
-    <hr>
-    <h4>{{ sco[0] }} : {{ sco[1] }}</h4>
-    {% for maintenance_name, detail in res.items() %}
-        <div class='maintenance-result'>
-            <span class='toggle-details'>+</span> <span>{{ detail[0] }} {{ maintenance_name }}</span>
-            <div class='maintenance-details'>
-            {% for file_name, lines in detail[1].items() %}
-                <span>
-                <b>{{ file_name }}</b> [
-                    {% for line_num, line in lines %}
-                        {{ line_num }},
-                    {% endfor %}
-                ] <br>
-                </span>
+<table style="width:100%">
+    <tr>
+        <th></th>
+        {% for header_name in headers %}
+            <th>{{ header_name }}</th>
+        {% endfor %}
+    </tr>
+    <tr class='header-row'>
+        <td>OVERALL</td>
+        {% for header_name in headers %}
+            {% if header_name in overall_breakdown %}
+            <td>{{ overall_breakdown[header_name] }}</td>
+            {% else %}
+            <td>0</td>
+            {% endif %}
+        {% endfor %}
+    </tr>
+    {% for (table, table_map) in table_breakdown.items() %}
+    <tr class='table-row'>
+        <td>{{ table }}</td>
+        {% for header_name in headers %}
+            {% if header_name in table_map %}
+            <td>{{ table_map[header_name] }}</td>
+            {% else %}
+            <td>0</td>
+            {% endif %}
+        {% endfor %}
+    </tr>
+        {% for sco_key in table_to_sco[table] %}
+        <tr class='hidden {{ table }}'>
+            <td>{{ sco_key[0] }} : {{ sco_key[2] }}</td>
+            {% for header_name in headers %}
+                {% if header_name in sco_details[sco_key] %}
+                <td>{{ sco_details[sco_key][header_name] }}</td>
+                {% else %}
+                <td>0</td>
+                {% endif %}
             {% endfor %}
-            </div>
-        </div>
+        </tr>
+        {% endfor %}
     {% endfor %}
-{% endfor %}
+</table>
 
 <script src="{{ url_for('static', filename='scripts/result.js') }}"></script>
 

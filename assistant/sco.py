@@ -9,8 +9,9 @@ class Sco(Enum):
     RENAME_TABLE    = "RENAME_TABLE"
 
 class SchemaChange():
-    def __init__(self, operator, operand):
+    def __init__(self, operator, table, operand):
         self.operator = operator
+        self.table = table
         self.operand = operand
 
     def __str__(self):
@@ -21,6 +22,9 @@ class SchemaChange():
 
     def get_operator(self):
         return Sco(self.operator) if type(self.operator) is str else self.operator
+
+    def get_table(self):
+        return self.table.upper()
 
     def get_operand(self):
         return self.operand.lower()

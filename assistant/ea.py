@@ -26,6 +26,7 @@ class EvolutionAssistant():
 
         ADD = self.simple_add
         SCHEMA = self.schema_maintenance
+        SCHEMA_T = self.table_wrapper(SCHEMA)
         MAP = self.map_maintenance
         MAP_T = self.table_wrapper(MAP)
         APPLICATION = self.application_maintenance
@@ -39,8 +40,8 @@ class EvolutionAssistant():
             Sco.DROP_COLUMN:    [ SCHEMA, MAP, APPLICATION, QUERY ],
             Sco.RENAME_COLUMN:  [ SCHEMA, MAP, QUERY ],
             Sco.ADD_TABLE:      [ ADD ],
-            Sco.DROP_TABLE:     [ SCHEMA, MAP_T, APPLICATION_T, QUERY_T ],
-            Sco.RENAME_TABLE:   [ SCHEMA, MAP_T, QUERY ]
+            Sco.DROP_TABLE:     [ SCHEMA_T, MAP_T, APPLICATION_T, QUERY_T ],
+            Sco.RENAME_TABLE:   [ SCHEMA_T, MAP_T, QUERY ]
         }
 
     def table_wrapper(self, f):
@@ -61,7 +62,7 @@ class EvolutionAssistant():
                     else:
                         aggregate_lines[fn] = lines_list[:]
             return (maintenance, aggregate_lines)
-        wrapped.__name__ = f.__name__ + "_t"
+        wrapped.__name__ = f.__name__
         return wrapped
 
     def validate_row(self, start, end):
@@ -81,7 +82,6 @@ class EvolutionAssistant():
                     continue
                 start_hash = row[0]
                 end_hash = row[2]
-                print(start_hash, end_hash)
                 if self.validate_row(start_hash, end_hash):
                     schema_var = row[-4].lower()
                     table_name = row[-5].lower()
@@ -100,7 +100,6 @@ class EvolutionAssistant():
         self.map_table = schema_var_to_row
     
     def get_classpath(self, classname):
-        print(classname)
         base_dir = self.code_dir + self.module
         classes = glob.glob(base_dir + '/**/*.java', recursive = True)
         for c in classes:
@@ -117,7 +116,8 @@ class EvolutionAssistant():
 
         while line:
             if line.lower().find(var) != -1:
-                lines.append((line_num, line))
+                # lines.append((line_num, line))
+                lines.append(line_num)
             line_num += 1
             line = f_rd.readline()
 
@@ -150,7 +150,8 @@ class EvolutionAssistant():
         for entry in map_entry:
             line_num = entry[0]
             line = entry[1:]
-            lines.append((line_num, line))
+            # lines.append((line_num, line))
+            lines.append(line_num)
         return (len(map_entry), { self.map_table_file : lines })
 
     def application_maintenance(self, var):
@@ -186,34 +187,80 @@ class EvolutionAssistant():
         return (1, {})
 
     def get_impact(self, sequence):
-        print('----------------')
+        # print('----------------')
         impact = 0
-        res = {}
+        # res = {}
+        table_breakdown = {}
+        table_to_sco = {}
+        sco_details = {}
+        overall_breakdown = {}
         for sc in sequence:
-            print(str(sc))
+            # print(str(sc))
             sc_impact = 0
             operator = sc.get_operator()
+            op_name = operator.name
+            table = sc.get_table()
             var = sc.get_operand()
             maintenance_funcs = self.impact_map[operator]
-            partial_results = {}
+            sco_key = (op_name, table, var)
+
+            # record this SCO under this table
+            if table in table_to_sco:
+                table_to_sco[table].append(sco_key)
+            else:
+                table_to_sco[table] = [sco_key]
+
+            # calculate impacts of SCO
+            partial_table_breakdown = {}
+            partial_details = {}
             for f in maintenance_funcs:
                 partial_result = f(var)
-                partial_results[f.__name__] = partial_result
                 partial_impact = partial_result[0]
+                # partial_results[f.__name__] = partial_result
+
+                partial_table_breakdown[f.__name__] = partial_impact
                 sc_impact += partial_impact
-                if self.verbose > 0:
-                    print("\t+ " + str(partial_impact) + " " + f.__name__)
-                if self.verbose > 1:
-                    file_dict = partial_result[1]
-                    for fn in file_dict:
-                        lineNums = [e[0] for e in file_dict[fn]]
-                        if (len(lineNums) > 0):
-                            print("\t\t" + fn + " lines " + str(lineNums))
-            print("Partial impact " + str(sc_impact))
-            print('----------------')
+                partial_details[f.__name__] = partial_result
+
+                # print info, depending on verbosity level
+                # if self.verbose > 0:
+                #     print("\t+ " + str(partial_impact) + " " + f.__name__)
+                # if self.verbose > 1:
+                #     file_dict = partial_result[1]
+                #     for fn in file_dict:
+                #         lineNums = [e for e in file_dict[fn]]
+                #         if (len(lineNums) > 0):
+                #             print("\t\t" + fn + " lines " + str(lineNums))
+            # print("Partial impact " + str(sc_impact))
+            # print('----------------')
+            partial_table_breakdown['TOTAL'] = sc_impact
+            sco_details[sco_key] = partial_details
+
+            if table in table_breakdown:
+                existing = table_breakdown[table]
+                for maint_name, maint_impact in partial_table_breakdown.items():
+                    if maint_name in existing:
+                        existing[maint_name] += maint_impact
+                    else:
+                        existing[maint_name] = maint_impact
+            else:
+                table_breakdown[table] = partial_table_breakdown
+
+
+            for maint_name, maint_impact in partial_table_breakdown.items():
+                if maint_name in overall_breakdown:
+                    overall_breakdown[maint_name] += maint_impact
+                else:
+                    overall_breakdown[maint_name] = maint_impact
+            # record this sc's impact, add it to running total
             impact += sc_impact
-            res[(operator.name, var)] = partial_results
-        return (impact, res)
+            # res[(operator.name, table, var, sc_impact)] = partial_results
+
+        print(overall_breakdown)
+        print(table_breakdown)
+        print(table_to_sco)
+        print(sco_details)
+        return (impact, overall_breakdown, table_breakdown, table_to_sco, sco_details)
 
 if __name__ == "__main__":
     pass

@@ -4,6 +4,18 @@ html, body {
     margin: 0px;
 }
 
+table {
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 15px;
+  }
+
 #header a { color: white }
 #header {
     background-color: #7bafae;
@@ -14,6 +26,25 @@ html, body {
 
 #content {
     padding: 40px;
+}
+
+h4.inline { 
+    display: inline-block;
+    margin: 5px;
+    margin-bottom: 15px;
+}
+
+.toggle:hover { 
+    cursor: pointer;
+    background-color: #c9eae6;
+}
+.toggle {
+    padding: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border: solid 1px #7bafae;
+    border-radius: 20px;
+    background-color: white;
 }
 
 .single-sco-form {
@@ -30,15 +61,20 @@ html, body {
     border-radius: 10px;
 }
 
-.sco-form-hidden { display: none }
+.hidden { display: none }
+
+.header-row, .table-row {
+    background-color: #e5f3f1;
+}
 
 .maintenance-result {
     background-color: #e7f3f1;
     padding: 20px;
     margin-bottom: 10px;
+    display: none;
 }
 
-.maintenance-details { 
+.maintenance-detail { 
     display: none;
     margin-left: 50px;
 }
