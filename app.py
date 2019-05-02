@@ -14,50 +14,24 @@ def get_vars(commit, table):
 def group_response(res):
     grouped = {}
     for key in res:
-        for value in res.getlist(key):
-            splitKey = key.split('#')
-            group = splitKey[0]
-            index = splitKey[1]
-            if index in grouped:
-                grouped[index][group] = value
-            else:
-                grouped[index] = { group: value }
+        if key != 'commit_hash':
+            for value in res.getlist(key):
+                splitKey = key.split('#')
+                group = splitKey[0]
+                index = splitKey[1]
+                if index in grouped:
+                    grouped[index][group] = value
+                else:
+                    grouped[index] = { group: value }
     return grouped.values()
 
-def reduce_by_maintenance(res):
-    grouped = {}
-    for maintenance in res.values():
-        for maint_type, detail in maintenance.items():
-            amount = detail[0]
-            if maint_type in grouped:
-                grouped[maint_type] += amount
-            else:
-                grouped[maint_type] = amount
-    return grouped
-
-def reduce_by_table(res):
-    grouped = {}
-    table_totals = {}
-    for info, maintenance in res.items():
-        (sco, table, var, amount) = info
-        if table in grouped:
-            grouped[table].append({ (sco, var, amount) : maintenance })
-        else:
-            grouped[table] = [{ (sco, var, amount) : maintenance }]
-
-        if table in table_totals:
-            table_totals[table] += amount
-        else:
-            table_totals[table] = amount
-    return (grouped, table_totals)
-
-def create_ea():
-    return EvolutionAssistant(  settings.MODULE,  
+def create_ea(commit_hash):
+    return EvolutionAssistant(  settings.info[commit_hash]['MODULE'],  
                                 settings.REPO_DIR,
                                 settings.CODE_DIR,
-                                settings.SCHEMA_DIR,
-                                settings.QUERY_FILES,
-                                settings.COMMIT_HASH,
+                                settings.info[commit_hash]['SCHEMA_DIR'],
+                                settings.info[commit_hash]['QUERY_FILES'],
+                                commit_hash,
                                 settings.MAP_TABLE,
                                 2 )
 
@@ -75,17 +49,11 @@ def get_seq(scos):
 def index():
     sco_names = [s.value for s in Sco]
     commit = request.args.get('commit')
+    commit_hashes = settings.tables.keys()
     table_names = []
     if commit:
         table_names = get_tables(commit)
-    return render_template("index.html", commit = commit, sco_names = sco_names, table_names = table_names)
-
-# @app.route('/result')
-# def result():
-#     total_impact = request.args.get('total_impact')
-#     results = request.args.get('results')
-#     maintenance_summary = request.args.get('maintenance_summary')
-#     return render_template("result.html", total_impact = total_impact, results = results, maintenance_summary = maintenance_summary)
+    return render_template("index.html", commit = commit, sco_names = sco_names, table_names = table_names, commit_hashes = commit_hashes)
 
 @app.route('/enter_commit', methods=['POST'])
 def enter_commit():
@@ -94,8 +62,9 @@ def enter_commit():
 
 @app.route('/submit_sc', methods=['POST'])
 def submit_sc():
+    commit_hash = request.form['commit_hash']
     scos = group_response(request.form)
-    ea = create_ea()
+    ea = create_ea(commit_hash)
     seq = get_seq(scos)
     (total_impact, overall_breakdown, table_breakdown, table_to_sco, sco_details) = ea.get_impact(seq)
     # summary = reduce_by_maintenance(results)
@@ -116,3 +85,20 @@ def get_table_vars():
     vars = get_vars(commit, table)
     formatString = '{} ' * len(vars)
     return formatString[:-1].format(*vars) 
+
+@app.route('/show_file', methods=['GET', 'POST'])
+def show_file():
+    filename = request.args.get('filename')
+    line_num = request.args.get('line')
+    # line_num = int(line_num)
+
+    lines = []
+    f = open(filename, 'r')
+    line = f.readline()
+
+    while line:
+        lines.append(line)
+        line = f.readline()
+
+    f.close()
+    return render_template( "file.html", lines=lines, line_num = line_num )

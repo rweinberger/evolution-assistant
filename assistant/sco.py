@@ -1,12 +1,13 @@
 from enum import Enum
 
 class Sco(Enum):
-    ADD_COLUMN      = "ADD_COLUMN"
-    DROP_COLUMN     = "DROP_COLUMN"
-    RENAME_COLUMN   = "RENAME_COLUMN"
-    ADD_TABLE       = "ADD_TABLE"
-    DROP_TABLE      = "DROP_TABLE"
-    RENAME_TABLE    = "RENAME_TABLE"
+    ADD_COLUMN          = "ADD_COLUMN"
+    DROP_COLUMN         = "DROP_COLUMN"
+    RENAME_COLUMN       = "RENAME_COLUMN"
+    ADD_TABLE           = "ADD_TABLE"
+    DROP_TABLE          = "DROP_TABLE"
+    RENAME_TABLE        = "RENAME_TABLE"
+    CHANGE_DATA_TYPE    = "CHANGE_DATA_TYPE"
 
 class SchemaChange():
     def __init__(self, operator, table, operand):

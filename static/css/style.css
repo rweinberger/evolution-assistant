@@ -5,16 +5,37 @@ html, body {
 }
 
 table {
+    width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
 }
 
-table, th, td {
+#results-table th, #results-table td {
     border: 1px solid #ccc;
 }
 
+.nested-table th, .nested-table td {
+    border: none !important;
+}
+
+/* .nested-header {
+    background-color: #c9eae6;
+} */
+
 th, td {
     padding: 15px;
-  }
+    vertical-align: top;
+    text-align: left;
+}
+
+.scrollable-cell {
+    overflow: scroll;
+    padding: 2px;
+}
+
+/* #results-table td:nth-child(6) {
+  width: 10%;
+}  */
 
 #header a { color: white }
 #header {
@@ -39,9 +60,9 @@ h4.inline {
     background-color: #c9eae6;
 }
 .toggle {
-    padding: 4px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding: 3px;
+    padding-left: 7px;
+    padding-right: 7px;
     border: solid 1px #7bafae;
     border-radius: 20px;
     background-color: white;
@@ -79,3 +100,20 @@ h4.inline {
     display: none;
     margin-left: 50px;
 }
+
+::-webkit-scrollbar {
+    /* -webkit-appearance: none; */
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color:  #7bafae;
+    /* border: 2px solid white; */
+    /* -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5); */
+  }
+  
+  ::-webkit-scrollbar-corner {
+      border-radius: 10px;
+  }

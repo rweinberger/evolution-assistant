@@ -29,19 +29,20 @@ class EvolutionAssistant():
         SCHEMA_T = self.table_wrapper(SCHEMA)
         MAP = self.map_maintenance
         MAP_T = self.table_wrapper(MAP)
-        APPLICATION = self.application_maintenance
+        APPLICATION = self.app_maintenance
         APPLICATION_T = self.table_wrapper(APPLICATION)
         QUERY = self.query_maintenance
         QUERY_T = self.table_wrapper(QUERY)
 
         # maps SCOs to the functions that must be used to calculate their impact
         self.impact_map = {
-            Sco.ADD_COLUMN :    [ ADD ],
-            Sco.DROP_COLUMN:    [ SCHEMA, MAP, APPLICATION, QUERY ],
-            Sco.RENAME_COLUMN:  [ SCHEMA, MAP, QUERY ],
-            Sco.ADD_TABLE:      [ ADD ],
-            Sco.DROP_TABLE:     [ SCHEMA_T, MAP_T, APPLICATION_T, QUERY_T ],
-            Sco.RENAME_TABLE:   [ SCHEMA_T, MAP_T, QUERY ]
+            Sco.ADD_COLUMN :        [ ADD ],
+            Sco.DROP_COLUMN:        [ SCHEMA, MAP, APPLICATION, QUERY ],
+            Sco.RENAME_COLUMN:      [ SCHEMA, MAP, QUERY ],
+            Sco.ADD_TABLE:          [ ADD ],
+            Sco.DROP_TABLE:         [ SCHEMA_T, MAP_T, APPLICATION_T, QUERY_T ],
+            Sco.RENAME_TABLE:       [ SCHEMA_T, MAP_T, QUERY ],
+            Sco.CHANGE_DATA_TYPE:   [ SCHEMA, MAP, QUERY, APPLICATION ]
         }
 
     def table_wrapper(self, f):
@@ -154,7 +155,7 @@ class EvolutionAssistant():
             lines.append(line_num)
         return (len(map_entry), { self.map_table_file : lines })
 
-    def application_maintenance(self, var):
+    def app_maintenance(self, var):
         if var not in self.map_table:
             return (0, {})
 
@@ -171,6 +172,7 @@ class EvolutionAssistant():
             lines = self.get_affected_lines(classpath, appvar)
             maintenance += len(lines)
             res[classpath] = lines
+
         return (maintenance, res)
 
     def query_maintenance(self, var):
@@ -216,23 +218,12 @@ class EvolutionAssistant():
             for f in maintenance_funcs:
                 partial_result = f(var)
                 partial_impact = partial_result[0]
-                # partial_results[f.__name__] = partial_result
 
                 partial_table_breakdown[f.__name__] = partial_impact
                 sc_impact += partial_impact
                 partial_details[f.__name__] = partial_result
 
-                # print info, depending on verbosity level
-                # if self.verbose > 0:
-                #     print("\t+ " + str(partial_impact) + " " + f.__name__)
-                # if self.verbose > 1:
-                #     file_dict = partial_result[1]
-                #     for fn in file_dict:
-                #         lineNums = [e for e in file_dict[fn]]
-                #         if (len(lineNums) > 0):
-                #             print("\t\t" + fn + " lines " + str(lineNums))
-            # print("Partial impact " + str(sc_impact))
-            # print('----------------')
+            partial_details['TOTAL'] = (sc_impact, {})
             partial_table_breakdown['TOTAL'] = sc_impact
             sco_details[sco_key] = partial_details
 
@@ -254,12 +245,6 @@ class EvolutionAssistant():
                     overall_breakdown[maint_name] = maint_impact
             # record this sc's impact, add it to running total
             impact += sc_impact
-            # res[(operator.name, table, var, sc_impact)] = partial_results
-
-        print(overall_breakdown)
-        print(table_breakdown)
-        print(table_to_sco)
-        print(sco_details)
         return (impact, overall_breakdown, table_breakdown, table_to_sco, sco_details)
 
 if __name__ == "__main__":

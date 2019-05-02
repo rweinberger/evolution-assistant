@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+
+<pre id='code'>
+<code class="language-java line-numbers">{{ ''.join(lines) }}</code>
+</pre>
+
+<script src="{{ url_for('static', filename='scripts/prism.js') }}"></script>
+<script> window.location.hash="code.{{ line_num }}"; </script>
+
+{% endblock %}

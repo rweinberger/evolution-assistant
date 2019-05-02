@@ -89,13 +89,13 @@ function addColumnSelect(target, table, text, targetNum) {
 function showForm(classname, table, sco) {
     const targetNum = classname.replace("target", "");
     const targetClass = $('.' + classname + '-ext');
-    console.log('.' + classname + '-ext');
     targetClass.empty();
     switch (sco) {
         case "ADD_COLUMN":
             addTextBox(targetClass, "New column name", targetNum);
             break;
         case "DROP_COLUMN":
+        case "CHANGE_DATA_TYPE":
             addColumnSelect(targetClass, table, "Column name", targetNum);
             break;
         case "RENAME_COLUMN":
@@ -117,7 +117,6 @@ function showForm(classname, table, sco) {
 }
 
 function detectFormSelection(classname) {
-    console.log(classname);
     return function() {
         allSelected = true;
         let sco = null;

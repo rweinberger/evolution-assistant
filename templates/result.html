@@ -3,46 +3,79 @@
 
 <h1>Results</h1>
 
-<table style="width:100%">
+<table id='results-table' style="width:100%">
     <tr>
         <th></th>
         {% for header_name in headers %}
-            <th>{{ header_name }}</th>
+            {% if header_name == 'TOTAL' %}
+                <th style='width: 70px'>{{ header_name }}</th>
+            {% else %}
+                <th>{{ header_name }}</th>
+            {% endif %}
         {% endfor %}
     </tr>
     <tr class='header-row'>
         <td>OVERALL</td>
         {% for header_name in headers %}
             {% if header_name in overall_breakdown %}
-            <td>{{ overall_breakdown[header_name] }}</td>
+                <td>{{ overall_breakdown[header_name] }}</td>
             {% else %}
-            <td>0</td>
+                <td>0</td>
             {% endif %}
         {% endfor %}
     </tr>
     {% for (table, table_map) in table_breakdown.items() %}
     <tr class='table-row'>
-        <td><span class='toggle' target='{{table}}'>+</span>{{ table }}</td>
+        <td>
+            <span class='toggle' target='{{table}}'>+</span>
+            <div class='scrollable-cell'>{{ table }}</div>
+        </td>
         {% for header_name in headers %}
             {% if header_name in table_map %}
-            <td>{{ table_map[header_name] }}</td>
+                <td>{{ table_map[header_name] }}</td>
             {% else %}
-            <td>0</td>
+                <td>0</td>
             {% endif %}
         {% endfor %}
     </tr>
-        {% for sco_key in table_to_sco[table] %}
-        <tr class='hidden {{ table }}'>
-            <td>{{ sco_key[0] }} : {{ sco_key[2] }}</td>
-            {% for header_name in headers %}
-                {% if header_name in sco_details[sco_key] %}
-                <td>{{ sco_details[sco_key][header_name] }}</td>
-                {% else %}
-                <td>0</td>
-                {% endif %}
-            {% endfor %}
-        </tr>
+    {% for sco_key in table_to_sco[table] %}
+    <tr class='hidden {{ table }}'>
+        <td>{{ sco_key[0] }} : {{ sco_key[2] }}</td>
+        {% for header_name in headers %}
+            <td>
+            <table class='nested-table'>
+            {% if header_name in sco_details[sco_key] %}
+            {% set details = sco_details[sco_key][header_name] %}
+            {% set amount = details[0] %}
+            {% set files = details[1] %}
+                <tr class='nested-header'>
+                    <td>{{ amount }}</td>
+                </tr>
+                <tr>
+                    <td><div class='scrollable-cell'>
+                    {% for filename, lines in files.items() %}
+                        {% set truncated_filename = filename.split("/")[-1] %}
+                        {{ truncated_filename }}
+                        <br>
+                        [
+                        {% for line in lines %}
+                            <a href='/show_file?filename={{ filename }}&line={{ line }}'>{{ line }}</a>
+                        {% endfor %}
+                        ]
+                        <br>
+                    {% endfor %}
+                    </div></td>
+                </tr>
+            {% else %}
+                <tr class='nested-header'>
+                    <td>0</td>
+                </tr>
+            {% endif %}
+            </table>
+            </td>
         {% endfor %}
+    </tr>
+    {% endfor %}
     {% endfor %}
 </table>
 
